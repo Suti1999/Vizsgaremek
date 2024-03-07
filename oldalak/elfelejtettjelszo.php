@@ -1,8 +1,6 @@
 <link rel="stylesheet" href="./css_script/elfelejtettjelszo.css"/>
 
-<?php 
-    $email = $_POST['e-mail_cim'];
-?>
+
 
  <div class="card position-relative"> 
     <!--KARTYA_CIM-->
