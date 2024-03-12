@@ -1,9 +1,10 @@
-<?php 
+<?php
 
 class Database {
     
     private $db = null;
     public $error = false;
+    
     
     public function __construct($host, $username, $pass, $db) {
         try {
@@ -16,17 +17,18 @@ class Database {
         }
     }
     
-    public function login($email, $password){
+    public function login($email, $password) {
         $stmt = $this->db->prepare("SELECT `e-mail_cim`, `jelszo`, userid FROM `users` WHERE `e-mail_cim` LIKE ?;");
         $stmt->bind_param("s", $email);
-
-        if ($stmt->execute()){
+        
+        if ($stmt->execute()) {
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
             if ($row && password_verify($password, $row['jelszo'])) {
+                var_dump($row);
                 $_SESSION['InputEmail'] = $row['e-mail_cim'];
                 $_SESSION['login'] = true;
-                $_SESSION['userid']=$row['userid'];
+                $_SESSION['userid'] = $row['userid'];
                 header("Location: index.php");
                 exit();
             } else {
@@ -37,15 +39,16 @@ class Database {
             }
             $result->free_result();
         }
-        return false;
+        return false;      
     }
     
-    public function register($vezeteknev, $keresztnev, $email, $password){
+    public function register($vezeteknev, $keresztnev, $email, $password) {
         $stmt = $this->db->prepare("INSERT INTO `users`(`vezeteknev`, `keresztnev`, `e-mail_cim`, `jelszo`, `userid`) VALUES (?,?,?,?,NULL)");
         $stmt->bind_param("ssss", $vezeteknev, $keresztnev, $email, $password);
-        try{
-            if ($stmt->execute()){
+        try {
+            if ($stmt->execute()) {
                 $_SESSION['login'] = true;
+                $_SESSION['userid'] = $this->db->insert_id;
             } else {
                 $_SESSION['login'] = false;
                 echo '<p>Rögzítés sikertelen!</p>';
@@ -54,12 +57,12 @@ class Database {
             $this->error = true;
         }
     }
-    
+
     public function osszesmotor() {
         $result = $this->db->query("SELECT * FROM `motor`");
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-    
+
     public function getKivalasztottMotor($motorId) {
         $stmt = $this->db->prepare("SELECT * FROM `motor` WHERE `motorid` = ?");
         $stmt->bind_param("i", $motorId);
@@ -72,11 +75,11 @@ class Database {
             return null;
         }
     }
-    
+
     public function hirdetesKeszitese($gyarto, $tipus, $evjarat, $allapot, $kobcenti, $jogositvany, $ar, $kW) {
         $stmt = $this->db->prepare("INSERT INTO `motor`(`gyarto`, `tipus`, `evjarat`, `allapot`, `kobcenti`, `jogositvany`, `ar`, `kW`) VALUES (?,?,?,?,?,?,?,?)");
         $stmt->bind_param("ssisisss", $gyarto, $tipus, $evjarat, $allapot, $kobcenti, $jogositvany, $ar, $kW);
-        try{
+        try {
             if ($stmt->execute()) {
                 echo 'Hirdetés sikeresen feladva!';
             } else {
@@ -88,43 +91,49 @@ class Database {
             var_dump($stmt);
         }
     }
-    
+
     public function osszesfelhasznalo() {
         $result = $this->db->query("SELECT * FROM `users`");
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-    
-    public function getBejelentkezettFelhasznalo($userid){
+
+    public function getBejelentkezettFelhasznalo($userid) {
         $stmt = $this->db->prepare("SELECT * FROM `users` WHERE `userid` = ?");
         $stmt->bind_param("i", $userid);
         $stmt->execute();
         $result = $stmt->get_result();
-           
-        if ($result->num_rows > 0){
+
+        if ($result->num_rows > 0) {
             return $result->fetch_assoc();
         } else {
             return null;
         }
     }
 
-    public function frissitFelhasznalo($userid, $vezeteknev, $keresztnev, $email, $jelszo) {
+   public function frissitFelhasznalo($userid, $vezeteknev, $keresztnev, $email, $jelszo) {
         try {
-            if (!empty($jelszo)) {
-                $jelszo = password_hash($jelszo, PASSWORD_DEFAULT);
+            if (!is_null($jelszo)) {
+                $jelszo_hash = jelszo_hash($jelszo, PASSWORD_DEFAULT);
+                $sql = "UPDATE `users` SET `vezeteknev` = ?, `keresztnev` = ?, `e-mail_cim` = ?, `jelszo` = ? WHERE `userid` = ?";
+                $stmt = $this->db->prepare($sql);
+                $stmt->bind_param('ssssi', $vezeteknev, $keresztnev, $email, $jelszo_hash, $userid);
+            } else {
+                // Jelszó frissítés nélkül
+                $sql = "UPDATE `users` SET `vezeteknev` = ?, `keresztnev` = ?, `e-mail_cim` = ? WHERE `userid` = ?";
+                $stmt = $this->db->prepare($sql);
+                $stmt->bind_param('sssi', $vezeteknev, $keresztnev, $email, $userid);
             }
-            $sql = "UPDATE `users` SET `vezeteknev` = ?, `keresztnev` = ?, `e-mail_cim` = ?, `jelszo` = ? WHERE `userid` = ?";
-            $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('ssssi', $vezeteknev, $keresztnev, $email, $jelszo, $userid);
 
             if ($stmt->execute()) {
                 $frissitesUzenet = "Sikeres frissítés!";
             } else {
-                $frissitesUzenet = "A frissítés nem sikerült!";
+                $frissitesUzenet = "A frissítés nem sikerült! Hiba: " . $stmt->error;
             }
-        } catch (mysqli_sql_exception $e) {
+        } catch (Exception $e) {
             $frissitesUzenet = "Hiba a felhasználó frissítésekor: " . $e->getMessage();
         }
-        $_SESSION['frissitesUzenet'] = $frissitesUzenet; 
+
+        $_SESSION['frissitesUzenet'] = $frissitesUzenet;
         header("Location: index.php");
         exit();
     }

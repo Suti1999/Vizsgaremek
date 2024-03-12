@@ -6,7 +6,10 @@ if (isset($_POST['AdatokModositas'])) {
     $keresztnev = $_POST['InputKeresztnev'];
     $email = $_POST['InputEmail'];
     $userid = $_SESSION['userid'];
-    $jelszo = isset($_POST['InputJelszo']) ? password_hash($_POST['InputJelszo'], PASSWORD_DEFAULT) : null;
+    
+
+    // Ellenőrzi, hogy volt-e új jelszó megadva
+    $jelszo = isset($_POST['InputJelszo']) ? $_POST['InputJelszo'] : null;
 
     $db->frissitFelhasznalo(
         $userid,
@@ -17,6 +20,7 @@ if (isset($_POST['AdatokModositas'])) {
     );
 }
 ?>
+
 
  <div class="card position-relative">
         
@@ -90,7 +94,8 @@ if (isset($_POST['AdatokModositas'])) {
                                 </svg>
                             </span>
                         </span>
-                        <input type="password" class="form-control" value="Jelszó" id="InputJelszo" name="InputJelszo" autofocus required>
+                        <input type="password" class="form-control" placeholder="Jelszó"  id="InputJelszo" name="InputJelszo" autofocus required>
+
                     </div>
                     
                     

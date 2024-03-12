@@ -5,7 +5,7 @@ $db = new Database("localhost", "root", "", "eladomotorok");
 
 if (!isset($_SESSION['login'])) {
     $_SESSION['login'] = false;
-} else {
+} else if($_SESSION['login']) {
     $_currentUser = $db->getBejelentkezettFelhasznalo($_SESSION['userid']);
 }
 
