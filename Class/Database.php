@@ -113,10 +113,10 @@ class Database {
    public function frissitFelhasznalo($userid, $vezeteknev, $keresztnev, $email, $jelszo) {
         try {
             if (!is_null($jelszo)) {
-                $jelszo_hash = jelszo_hash($jelszo, PASSWORD_DEFAULT);
+                $jelszo = password_hash($jelszo, PASSWORD_DEFAULT);
                 $sql = "UPDATE `users` SET `vezeteknev` = ?, `keresztnev` = ?, `e-mail_cim` = ?, `jelszo` = ? WHERE `userid` = ?";
                 $stmt = $this->db->prepare($sql);
-                $stmt->bind_param('ssssi', $vezeteknev, $keresztnev, $email, $jelszo_hash, $userid);
+                $stmt->bind_param('ssssi', $vezeteknev, $keresztnev, $email, $jelszo, $userid);
             } else {
                 // Jelszó frissítés nélkül
                 $sql = "UPDATE `users` SET `vezeteknev` = ?, `keresztnev` = ?, `e-mail_cim` = ? WHERE `userid` = ?";

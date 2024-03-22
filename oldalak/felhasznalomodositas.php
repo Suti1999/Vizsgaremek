@@ -7,9 +7,13 @@ if (isset($_POST['AdatokModositas'])) {
     $email = $_POST['InputEmail'];
     $userid = $_SESSION['userid'];
     
+    $jelszo = isset($_POST['InputJelszo']) ? $_POST['InputJelszo'] : "";
 
-    // Ellenőrzi, hogy volt-e új jelszó megadva
-    $jelszo = isset($_POST['InputJelszo']) ? $_POST['InputJelszo'] : null;
+    if (empty($jelszo)) {
+        $_SESSION['frissitesUzenet'] = "A jelszó mező kitöltése kötelező!";
+        header("Location: index.php?menu=FiokModositas");
+        exit();
+    }
 
     $db->frissitFelhasznalo(
         $userid,
@@ -20,6 +24,7 @@ if (isset($_POST['AdatokModositas'])) {
     );
 }
 ?>
+
 
 
  <div class="card position-relative">
@@ -94,7 +99,7 @@ if (isset($_POST['AdatokModositas'])) {
                                 </svg>
                             </span>
                         </span>
-                        <input type="password" class="form-control" placeholder="Jelszó"  id="InputJelszo" name="InputJelszo" autofocus required>
+                        <input type="password" class="form-control" placeholder="Jelszó" id="InputJelszo" name="InputJelszo" autofocus>
 
                     </div>
                     
